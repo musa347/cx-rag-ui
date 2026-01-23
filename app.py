@@ -5,7 +5,7 @@ import json
 st.set_page_config(page_title="CX RAG System", page_icon="🤖")
 
 # Configuration
-API_URL = st.secrets.get("API_URL", "https://your-app.onrender.com")
+API_URL = st.secrets.get("API_URL", "https://cx-rag-backend.onrender.com")
 
 st.title("🤖 CX RAG System")
 st.markdown("**Free Customer Intelligence System**")
