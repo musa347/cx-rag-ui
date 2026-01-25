@@ -2,12 +2,12 @@ import streamlit as st
 import requests
 import json
 
-st.set_page_config(page_title="CX RAG System", page_icon="🤖")
+st.set_page_config(page_title="Nora")
 
 # Configuration
 API_URL = st.secrets.get("API_URL", "https://cx-rag-backend.onrender.com")
 
-st.title("🤖 CX RAG System")
+st.title("Nora")
 st.markdown("**Free Customer Intelligence System**")
 
 # Simple interface
@@ -35,6 +35,11 @@ if st.button("Get Answer", type="primary"):
                         st.success(f"🟢 Confidence: {confidence}")
                     else:
                         st.warning(f"🟡 Confidence: {confidence}")
+
+                    # Show next action if available
+                    next_action = result.get("nextAction")
+                    if next_action:
+                        st.info(f"**Next Action:** {next_action}")
 
                     citations = result.get("citations", [])
                     if citations:
