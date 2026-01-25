@@ -61,12 +61,13 @@ st.markdown("""
         font-weight: bold;
     }
     .citation-card {
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(15px);
         padding: 1rem;
         border-radius: 10px;
         margin: 0.5rem 0;
-        border: 1px solid rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        font-size: 0.9rem;
     }
     .stButton > button {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -91,7 +92,7 @@ if "history" not in st.session_state:
 # Cool header
 st.markdown("""
 <div class="main-header">
-    <h1>🤖 NORA AI</h1>
+    <h1>NORA AI</h1>
     <p>Advanced Customer Intelligence System</p>
 </div>
 """, unsafe_allow_html=True)
@@ -104,7 +105,9 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     st.markdown('<div class="query-box">', unsafe_allow_html=True)
-    st.markdown("### 💬 Ask Nora")
+    st.markdown("### Ask Nora")
+
+    # Query input
     query = st.text_area(
         "",
         placeholder="How should I handle a customer complaint about online banking access?",
@@ -112,21 +115,41 @@ with col1:
         label_visibility="collapsed"
     )
 
-    col_type, col_btn = st.columns([1, 1])
+    # Endpoint and query type selection
+    col_endpoint, col_type = st.columns([1, 1])
+    with col_endpoint:
+        endpoint_type = st.selectbox(
+            " Query Mode:",
+            ["General Query", "Policy Guidance", "Complaint Analysis"]
+        )
     with col_type:
-        query_type = st.selectbox("🎯 Query Type:", ["both", "policy", "complaint"])
-    with col_btn:
-        st.write("")  # spacing
-        ask_button = st.button("🚀 Ask Nora", type="primary", use_container_width=True)
+        if endpoint_type == "General Query":
+            query_type = st.selectbox("📊 Data Type:", ["both", "policy", "complaint"])
+        else:
+            st.write("")  # spacing
+
+    # Ask button
+    ask_button = st.button(" Ask Nora", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Response area
     if ask_button and query:
-        with st.spinner("🧠 Nora is thinking..."):
+        with st.spinner(" Nora is thinking..."):
             try:
+                # Map endpoint types to URLs and payloads
+                if endpoint_type == "Policy Guidance":
+                    endpoint = "/api/cx/policy-guidance"
+                    payload = {"scenario": query}
+                elif endpoint_type == "Complaint Analysis":
+                    endpoint = "/api/cx/complaint-analysis"
+                    payload = {"complaint": query}
+                else:  # General Query
+                    endpoint = "/api/cx/answer"
+                    payload = {"query": query, "type": query_type}
+
                 response = requests.post(
-                    f"{API_URL}/api/cx/answer",
-                    json={"query": query, "type": query_type},
+                    f"{API_URL}{endpoint}",
+                    json=payload,
                     timeout=60
                 )
 
@@ -136,7 +159,8 @@ with col1:
                     # Add to history
                     st.session_state.history.append({
                         "query": query,
-                        "type": query_type,
+                        "endpoint": endpoint_type,
+                        "type": query_type if endpoint_type == "General Query" else endpoint_type,
                         "answer": result.get("answer", "No answer"),
                         "confidence": result.get("confidence", "UNKNOWN"),
                         "timestamp": time.strftime("%H:%M")
@@ -144,7 +168,7 @@ with col1:
 
                     # Cool answer display
                     st.markdown('<div class="answer-box">', unsafe_allow_html=True)
-                    st.markdown("### 💡 Nora's Response")
+                    st.markdown("###  Nora's Response")
                     st.write(result.get("answer", "No answer"))
 
                     # Confidence with cool styling
@@ -157,20 +181,27 @@ with col1:
                     # Next action
                     next_action = result.get("nextAction")
                     if next_action:
-                        st.markdown("### 🎯 Recommended Action")
+                        st.markdown("###  Recommended Action")
                         st.info(next_action)
+
+                    # Risk flags (if any)
+                    risks = result.get("risks", [])
+                    if risks:
+                        st.markdown("###  Risk Alerts")
+                        for risk in risks:
+                            st.warning(f"**{risk.get('type')}**: {risk.get('description')}")
 
                     st.markdown('</div>', unsafe_allow_html=True)
 
                     # Citations with cool cards
                     citations = result.get("citations", [])
                     if citations:
-                        st.markdown("### 📚 Knowledge Sources")
+                        st.markdown("### Knowledge Sources")
                         for citation in citations:
                             st.markdown(f"""
                             <div class="citation-card">
-                                <strong>📋 {citation.get('policyName')}</strong><br>
-                                <em>{citation.get('sectionTitle')}</em>
+                                <strong> {citation.get('policyName', 'Unknown Policy')}</strong><br>
+                                <em>{citation.get('sectionTitle', 'Unknown Section')}</em>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -182,10 +213,10 @@ with col1:
 
 # Cool sidebar
 with col2:
-    st.markdown("### 🎛️ Control Panel")
+    st.markdown("### ️ Control Panel")
 
     # Status check with cool button
-    if st.button("🔍 System Status", use_container_width=True):
+    if st.button(" System Status", use_container_width=True):
         try:
             response = requests.get(f"{API_URL}/api/health", timeout=10)
             if response.status_code == 200:
@@ -197,14 +228,16 @@ with col2:
 
     # Query History
     if st.session_state.history:
-        st.markdown("### 📝 Recent Queries")
+        st.markdown("###  Recent Queries")
         if st.button("🗑️ Clear History", use_container_width=True):
             st.session_state.history = []
             st.rerun()
 
         for i, item in enumerate(reversed(st.session_state.history[-5:])):
             with st.expander(f"🕐 {item['timestamp']} - {item['query'][:25]}..."):
-                st.write(f"**Type:** {item['type']}")
+                st.write(f"**Mode:** {item['endpoint']}")
+                if item['endpoint'] == "General Query":
+                    st.write(f"**Type:** {item['type']}")
                 st.write(f"**Answer:** {item['answer'][:100]}...")
                 confidence_emoji = "🟢" if item['confidence'] == "HIGH" else "🟡"
                 st.write(f"**Confidence:** {confidence_emoji} {item['confidence']}")
