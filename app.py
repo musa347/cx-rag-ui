@@ -4,13 +4,12 @@ import json
 import time
 
 st.set_page_config(
-    page_title="Nora AI",
-    page_icon="🤖",
+    page_title="IRIS AI",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for cool styling
+# Custom CSS for professional styling
 st.markdown("""
 <style>
     .main-header {
@@ -89,10 +88,10 @@ st.markdown("""
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Cool header
+# Professional header
 st.markdown("""
 <div class="main-header">
-    <h1>NORA AI</h1>
+    <h1>IRIS AI</h1>
     <p>Advanced Customer Intelligence System</p>
 </div>
 """, unsafe_allow_html=True)
@@ -105,7 +104,7 @@ col1, col2 = st.columns([2, 1])
 
 with col1:
     st.markdown('<div class="query-box">', unsafe_allow_html=True)
-    st.markdown("### Ask Nora")
+    st.markdown("### Ask IRIS")
 
     # Query input
     query = st.text_area(
@@ -119,22 +118,22 @@ with col1:
     col_endpoint, col_type = st.columns([1, 1])
     with col_endpoint:
         endpoint_type = st.selectbox(
-            " Query Mode:",
+            "Query Mode:",
             ["General Query", "Policy Guidance", "Complaint Analysis"]
         )
     with col_type:
         if endpoint_type == "General Query":
-            query_type = st.selectbox("📊 Data Type:", ["both", "policy", "complaint"])
+            query_type = st.selectbox("Data Type:", ["both", "policy", "complaint"])
         else:
             st.write("")  # spacing
 
     # Ask button
-    ask_button = st.button(" Ask Nora", type="primary", use_container_width=True)
+    ask_button = st.button("Ask IRIS", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Response area
     if ask_button and query:
-        with st.spinner(" Nora is thinking..."):
+        with st.spinner("Processing..."):
             try:
                 # Map endpoint types to URLs and payloads
                 if endpoint_type == "Policy Guidance":
@@ -166,85 +165,85 @@ with col1:
                         "timestamp": time.strftime("%H:%M")
                     })
 
-                    # Cool answer display
+                    # Answer display
                     st.markdown('<div class="answer-box">', unsafe_allow_html=True)
-                    st.markdown("###  Nora's Response")
+                    st.markdown("### Response")
                     st.write(result.get("answer", "No answer"))
 
-                    # Confidence with cool styling
+                    # Confidence display
                     confidence = result.get("confidence", "UNKNOWN")
                     if confidence == "HIGH":
-                        st.markdown(f'<div class="confidence-high">🟢 {confidence} CONFIDENCE</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="confidence-high">HIGH CONFIDENCE</div>', unsafe_allow_html=True)
                     else:
-                        st.markdown(f'<div class="confidence-medium">🟡 {confidence} CONFIDENCE</div>', unsafe_allow_html=True)
+                        st.markdown(f'<div class="confidence-medium">{confidence} CONFIDENCE</div>', unsafe_allow_html=True)
 
                     # Next action
                     next_action = result.get("nextAction")
                     if next_action:
-                        st.markdown("###  Recommended Action")
+                        st.markdown("### Recommended Action")
                         st.info(next_action)
 
                     # Risk flags (if any)
                     risks = result.get("risks", [])
                     if risks:
-                        st.markdown("###  Risk Alerts")
+                        st.markdown("### Risk Alerts")
                         for risk in risks:
                             st.warning(f"**{risk.get('type')}**: {risk.get('description')}")
 
                     st.markdown('</div>', unsafe_allow_html=True)
 
-                    # Citations with cool cards
+                    # Citations
                     citations = result.get("citations", [])
                     if citations:
                         st.markdown("### Knowledge Sources")
                         for citation in citations:
                             st.markdown(f"""
                             <div class="citation-card">
-                                <strong> {citation.get('policyName', 'Unknown Policy')}</strong><br>
+                                <strong>{citation.get('policyName', 'Unknown Policy')}</strong><br>
                                 <em>{citation.get('sectionTitle', 'Unknown Section')}</em>
                             </div>
                             """, unsafe_allow_html=True)
 
                 else:
-                    st.error(f"❌ Error: {response.text}")
+                    st.error(f"Error: {response.text}")
 
             except Exception as e:
-                st.error(f"🔌 Connection error: {str(e)}")
+                st.error(f"Connection error: {str(e)}")
 
-# Cool sidebar
+# Sidebar
 with col2:
-    st.markdown("### ️ Control Panel")
+    st.markdown("### Control Panel")
 
-    # Status check with cool button
-    if st.button(" System Status", use_container_width=True):
+    # Status check
+    if st.button("System Status", use_container_width=True):
         try:
             response = requests.get(f"{API_URL}/api/health", timeout=10)
             if response.status_code == 200:
-                st.success("✅ System Online")
+                st.success("System Online")
             else:
-                st.error("❌ System Offline")
+                st.error("System Offline")
         except:
-            st.error("❌ Connection Failed")
+            st.error("Connection Failed")
 
     # Query History
     if st.session_state.history:
-        st.markdown("###  Recent Queries")
-        if st.button("🗑️ Clear History", use_container_width=True):
+        st.markdown("### Recent Queries")
+        if st.button("Clear History", use_container_width=True):
             st.session_state.history = []
             st.rerun()
 
         for i, item in enumerate(reversed(st.session_state.history[-5:])):
-            with st.expander(f"🕐 {item['timestamp']} - {item['query'][:25]}..."):
-                st.write(f"**Mode:** {item['endpoint']}")
-                if item['endpoint'] == "General Query":
-                    st.write(f"**Type:** {item['type']}")
+            with st.expander(f"{item['timestamp']} - {item['query'][:25]}..."):
+                endpoint = item.get('endpoint', 'General Query')
+                st.write(f"**Mode:** {endpoint}")
+                if endpoint == "General Query":
+                    st.write(f"**Type:** {item.get('type', 'both')}")
                 st.write(f"**Answer:** {item['answer'][:100]}...")
-                confidence_emoji = "🟢" if item['confidence'] == "HIGH" else "🟡"
-                st.write(f"**Confidence:** {confidence_emoji} {item['confidence']}")
+                st.write(f"**Confidence:** {item['confidence']}")
 
 # Footer
 st.markdown("---")
 st.markdown(
-    "<div style='text-align: center; color: #666;'>Powered by Advanced RAG Technology 🚀</div>",
+    "<div style='text-align: center; color: #666;'>Powered by Advanced RAG Technology</div>",
     unsafe_allow_html=True
 )
