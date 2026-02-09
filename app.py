@@ -96,6 +96,18 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# System description
+st.markdown("""
+<div style='background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem; border-left: 4px solid #667eea;'>
+    <h3 style='margin-top: 0; color: #667eea;'>What is IRIS AI?</h3>
+    <p style='margin-bottom: 0; color: #555;'>
+        IRIS AI is an intelligent customer experience assistant powered by RAG (Retrieval-Augmented Generation) technology. 
+        It analyzes company policies and historical complaint data to provide instant, accurate guidance for customer service scenarios, 
+        policy questions, and complaint resolution strategies.
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
 # Configuration
 API_URL = st.secrets.get("API_URL", "https://cx-rag-backend.onrender.com")
 
